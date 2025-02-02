@@ -1,0 +1,37 @@
+<html>
+<body>
+
+<input type="file" onchange="loadFile(this.files[0])" />
+<button id="processLayers-btn" onclick="processLayers();" disabled>Process layers</button>
+<div id="svg"></div>
+
+
+<script>
+function loadFile(file) {
+  let fileReader = new FileReader(); 
+  fileReader.onload = function (e) { 
+  	let fileContents = document.getElementById('svg');
+  	fileContents.innerHTML = fileReader.result;
+    document.getElementById('processLayers-btn').removeAttribute('disabled');
+  } 
+  fileReader.readAsText(file); 
+}
+
+function processLayers() {
+  let svg = document.getElementById('svg');
+  let gs = svg.getElementsByTagName('g');
+  let layers = [];
+  for(let i = 0; i < gs.length; i++) {
+    if(gs[i].getAttribute('inkscape:label')) {
+      layers.push(gs[i]);
+    }
+  }
+  console.log(layers);
+  
+  layers[0].style.opacity = 0;
+}
+
+</script>
+
+</body>
+</html>
