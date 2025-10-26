@@ -1,18 +1,24 @@
 <html>
 <body>
 
-<input type="file" onchange="loadFile(this.files[0])" />
-<button id="processLayers-btn" onclick="processLayers();" disabled>Process layers</button>
+<input type="file" onchange="loadFile(this.files[0])" /><br>
+<label for="frameDuration">Frame duration:</label><input type="number" id="frameDuration" value="200">
+<button id="play-btn" onclick="isPlaying ? stop() : play();" disabled>Play</button>
 <div id="svg"></div>
 
 
 <script>
+var layers = [];
+var isPlaying = false;
+var frameDuration;
+
+
 function loadFile(file) {
   let fileReader = new FileReader(); 
   fileReader.onload = function (e) { 
   	let fileContents = document.getElementById('svg');
   	fileContents.innerHTML = fileReader.result;
-    document.getElementById('processLayers-btn').removeAttribute('disabled');
+    processLayers();
   } 
   fileReader.readAsText(file); 
 }
@@ -20,7 +26,7 @@ function loadFile(file) {
 function processLayers() {
   let svg = document.getElementById('svg');
   let gs = svg.getElementsByTagName('g');
-  let layers = [];
+  layers = [];
   for(let i = 0; i < gs.length; i++) {
     if(gs[i].getAttribute('inkscape:label')) {
       layers.push(gs[i]);
@@ -28,7 +34,44 @@ function processLayers() {
   }
   console.log(layers);
   
-  layers[0].style.opacity = 0;
+  document.getElementById('play-btn').removeAttribute('disabled');
+}
+
+function stop() {
+  isPlaying = false;
+  document.getElementById('play-btn').innerHTML = 'Play';
+}
+
+function play() {
+  // prepare
+  for(let i = 0; i < layers.length; i++) {
+    layers[i].style.opacity = 0;
+  }
+
+  frameDuration = document.getElementById('frameDuration').value;
+  isPlaying = true;
+  document.getElementById('play-btn').innerHTML = 'Stop';
+
+  // loop layers
+  switchToLayer(0);
+}
+
+function switchToLayer(layerIndex) {
+  if(!isPlaying) {
+    return;
+  }
+  
+  if(layerIndex === 0) {
+    layers[layers.length - 1].style.opacity = 0;
+  } else {
+    layers[layerIndex - 1].style.opacity = 0;
+  }
+  layers[layerIndex].style.opacity = 1;
+
+  const newLayerIndex = (layerIndex === layers.length - 1) ? 0 : (layerIndex + 1);
+  setTimeout(function() {
+    switchToLayer(newLayerIndex);
+  }, frameDuration);
 }
 
 </script>
